@@ -1,3 +1,23 @@
+Local changes
+-------------
+
+history-rewrite for 4.7M object repo (5k commits, 7Gb compressed), 
+performing charset detection (heuristic + BOM + xml header) on each file
+revision, some basic path rewriting and blob removal to make repo look better 
+after switch from Subversion.
+Performance improved with local caching, because shared map has a cost
+with python multiprocessing.
+
+My results by phase timing (48 cores, 128Gb ram, nvme):
+ - 1m25s collect file hashes
+ - 4m50s file rewrite (warm disk cache to tmpfs)
+ - 5m56s trees rewrite
+ - 2s commits rewrite
+
+git fsck looks ok
+
+
+
 How to rewrite the history of 170k commits and 2.8 million objects in 19 minutes
 with ~300 lines of python code.
 
