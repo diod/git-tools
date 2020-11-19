@@ -32,7 +32,6 @@ import os
 import subprocess
 import zlib
 
-
 class SHA1:
   def __init__(self, value, hexvalue=None):
     assert len(value) == 20
@@ -81,9 +80,12 @@ def WriteGitObj(objtype, payload, objdir):
   return sha1
 
 
-def ReadGitObj(sha1, objdir):
+def ReadGitObj(sha1, objdir, objdir2 = ''):
   assert(isinstance(sha1, SHA1))
   objpath = os.path.join(objdir, sha1.hex[0:2], sha1.hex[2:])
+  if not os.path.isfile(objpath):
+    objpath = os.path.join(objdir2, sha1.hex[0:2], sha1.hex[2:])
+
   with open(objpath, 'rb') as fin:
     data = zlib.decompress(fin.read())
   headlen = data.index('\x00')
@@ -101,10 +103,10 @@ def CopyGitBlobIntoFile(sha1, file_path, objdir):
   WriteFileAtomic(file_path, data)
 
 
-def ReadGitTree(sha1, objdir):
+def ReadGitTree(sha1, objdir, objdir2 = ''):
   """Returns a sorted list of tupled (mode, fname, sha1)"""
-  objtype, _, data = ReadGitObj(sha1, objdir)
-  #print 'READING ', sha1.hex, objtype
+  objtype, _, data = ReadGitObj(sha1, objdir, objdir2)
+  #print 'READING ', sha1.hex, objtype, data
   assert(objtype == 'tree')
   s = 0
   entries = []
@@ -112,7 +114,7 @@ def ReadGitTree(sha1, objdir):
     s1 = data.find(' ', s)
     s2 = data.find('\0', s)
     mode = data[s:s1]
-    fname = data[(s1+1):s2]
+    fname = data[(s1+1):s2];
     sha1 = SHA1(data[(s2+1):(s2+21)])
     s = s2 + 21
     entries.append((mode, fname, sha1))
